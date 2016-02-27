@@ -179,6 +179,7 @@ class GraphiteURL(object):
             if k in kwargs:
                 setattr(self.style, k, kwargs[k])
         self.title = title
+        self.vtitle = None
         self.max = max
         self.min = min
         self._targets = ''
@@ -255,6 +256,7 @@ class GraphiteURL(object):
         obj.end = query_param('until', None)
         obj.tz = query_param('tz', None)
         obj.title = query_param('title', None)
+        obj.vtitle = query_param('vtitle', None)
         obj.min = query_param('yMin', None)
         obj.max = query_param('yMax', None)
         # targets
@@ -278,6 +280,8 @@ class GraphiteURL(object):
             s += '&tz={0.tz}'
         if self.title:
             s += '&title={0.title}'
+        if self.vtitle:
+            s += '&vtitle={0.vtitle}'
         if self.min is not None:
             s += '&yMin={0.min}'
         if self.max is not None:
