@@ -1,3 +1,24 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright (C) 2009-2015:
+#    Bjorn, @Simage
+#
+# This file is part of Shinken.
+#
+# Shinken is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Shinken is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Shinken.  If not, see <http://www.gnu.org/licenses/>.
+
 __author__ = 'bjorn'
 
 import logging
@@ -34,10 +55,28 @@ class GraphFactory(object):
         self.logger.debug(self.element_type)
         if self.element_type == 'host':
             if "_GRAPHITE_PRE" in self.element.customs:
-                return self.element.customs["_GRAPHITE_PRE"]
+                if "_GRAPHITE_GROUP" in self.element.customs:
+                    return GraphiteMetric.join(
+                        self.element.customs["_GRAPHITE_PRE"],
+                        self.element.customs["_GRAPHITE_GROUP"]
+                    )
+                else:
+                    return self.element.customs["_GRAPHITE_PRE"]
+            else:
+                if "_GRAPHITE_GROUP" in self.element.customs:
+                    return self.element.customs["_GRAPHITE_GROUP"]
         elif self.element_type == 'service':
             if "_GRAPHITE_PRE" in self.element.host.customs:
-                return self.element.host.customs["_GRAPHITE_PRE"]
+                if "_GRAPHITE_GROUP" in self.element.host.customs:
+                    return GraphiteMetric.join(
+                        self.element.host.customs["_GRAPHITE_PRE"],
+                        self.element.host.customs["_GRAPHITE_GROUP"]
+                    )
+                else:
+                    return self.element.host.customs["_GRAPHITE_PRE"]
+            else:
+                if "_GRAPHITE_GROUP" in self.element.host.customs:
+                    return self.element.host.customs["_GRAPHITE_GROUP"]
         return ''
 
     # property to retrieve the graphite postfix for a host
@@ -81,9 +120,9 @@ class GraphFactory(object):
     @property
     def hostname(self):
         try:
-            return self.element.host_name
+            return GraphiteMetric.normalize_name(self.element.host_name)
         except AttributeError:
-            return self.element.host.host_name
+            return GraphiteMetric.normalize_name(self.element.host.host_name)
 
     @property
     def element_type(self):
@@ -91,10 +130,10 @@ class GraphFactory(object):
 
     @property
     def servicename(self):
-        try:
-            return self.element.service_description
-        except:
-            return self.cfg.hostcheck
+        if self.element_type == 'service':
+            return GraphiteMetric.normalize_name(self.element.service_description)
+        else:
+            return GraphiteMetric.normalize_name(self.cfg.hostcheck)
 
     # retrieve a style with graceful fallback
     def get_style(self, name):
@@ -141,11 +180,12 @@ class GraphFactory(object):
         for metric in couples:
             self.logger.debug("[Graphite UI] metric: %s", metric)
             title = '%s/%s - %s' % (self.hostname, self.servicename, metric['name'])
-            graph = GraphiteURL(server=self.cfg.uri, title=title, style=self.style, start=self.graph_start,
-                                end=self.graph_end, tz=self.cfg.tz)
+            graph = GraphiteURL(server=self.cfg.uri, title=title, style=self.style,
+                                start=self.graph_start, end=self.graph_end, tz=self.cfg.tz)
 
             # Graph main series
-            graphite_metric = GraphiteMetric(self.prefix, self.hostname, self.cfg.graphite_data_source,
+            graphite_metric = GraphiteMetric(self.prefix, self.hostname,
+                                             self.cfg.graphite_data_source,
                                              self.servicename, metric['name'], self.postfix)
             graph.add_target(graphite_metric, alias=metric['name'], color='green')
 

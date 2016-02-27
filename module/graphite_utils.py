@@ -1,4 +1,26 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright (C) 2009-2015:
+#    Bjorn, @Simage
+#
+# This file is part of Shinken.
+#
+# Shinken is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Shinken is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Shinken.  If not, see <http://www.gnu.org/licenses/>.
+
 # Graphite utilities for generating graphs
+__author__ = 'bjorn'
 
 
 from datetime import datetime
@@ -214,7 +236,10 @@ class GraphiteURL(object):
         server = '{0.scheme}://{0.hostname}'.format(parts)
         if parts.port:
             server += ':%d' % parts.port
-        server += '/'
+        path = parts.path.split('/')
+        # strip out the final component (should be render or composer) since the args list is
+        # separated from the path by a '/?' this is actually the last two elements that need to be dropped
+        server += '/'.join(path[:-2])
 
         obj = cls(style=style, server=server)
         # style
@@ -276,7 +301,11 @@ class GraphiteRewriteRule(object):
 
 
 class GraphiteMetric(object):
+    # Specific filter for metrics name
     illegal_char = re.compile(r'[^a-zA-Z0-9_.\-]')
+    # Specific filter for host and services names
+    illegal_char_hostname = re.compile(r'[^a-zA-Z0-9_\-]')
+
     rewrite_rules = []
 
     def __init__(self, *parts):
@@ -298,6 +327,10 @@ class GraphiteMetric(object):
     @classmethod
     def normalize(cls, metric_name):
         return cls.illegal_char.sub("_", metric_name)
+
+    @classmethod
+    def normalize_name(cls, metric_name):
+        return cls.illegal_char_hostname.sub("_", metric_name)
 
     @classmethod
     def add_rule(cls, rule, sub):

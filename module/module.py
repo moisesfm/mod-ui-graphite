@@ -1,12 +1,13 @@
 #!/usr/bin/python
-
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2009-2012:
-# Gabes Jean, naparuba@gmail.com
-# Gerhard Lausser, Gerhard.Lausser@consol.de
-# Gregory Starck, g.starck@gmail.com
-# Hartmut Goebel, h.goebel@goebel-consult.de
+# Copyright (C) 2009-2015:
+#    Gabes Jean, naparuba@gmail.com
+#    Gerhard Lausser, Gerhard.Lausser@consol.de
+#    Gregory Starck, g.starck@gmail.com
+#    Hartmut Goebel, h.goebel@goebel-consult.de
+#    Frederic Mohier, frederic.mohier@gmail.com
+#    Bjorn, @Simage
 #
 # This file is part of Shinken.
 #
@@ -60,7 +61,7 @@ class Graphite_Webui(BaseModule):
         self.app = None
 
         # service name to use for host check
-        self.hostcheck = getattr(modconf, 'hostcheck', '__HOST__')
+        self.hostcheck = getattr(modconf, 'hostcheck', '')
 
         # load styles
         self.styles = dict(default=GraphStyle())
@@ -69,17 +70,6 @@ class Graphite_Webui(BaseModule):
         self.uri = getattr(modconf, 'uri', '')
         logger.info("[Graphite UI] Configuration - uri: %s", self.uri)
 
-        self.rewrite_rules = getattr(modconf, 'graphite_rewrite_rule', '')
-        for r in self.rewrite_rules:
-            logger.info("[Graphite UI] Configuration - rewrite rule: %s", r)
-            try:
-                rule, sub = r.split('=', 1)
-            except ValueError:
-                logger.warning('[Graphite UI] Unable to split "%s" into a rule an a substitution'.r)
-                logger.warning('[Graphite UI] Expected rule in format "rule=substitution"')
-                continue
-            GraphiteMetric.add_rule(rule.strip(), sub.strip())
-
         self.templates_path = getattr(modconf, 'templates_path', '/tmp')
         logger.info("[Graphite UI] Configuration - templates path: %s", self.templates_path)
 
@@ -87,25 +77,12 @@ class Graphite_Webui(BaseModule):
         self.graphite_data_source = getattr(modconf, 'graphite_data_source', '')
         logger.info("[Graphite UI] Configuration - Graphite data source: %s", self.graphite_data_source)
 
-        # optional perfdatas to be filtered
-        self.filtered_metrics = {}
-        filters = getattr(modconf, 'filter', [])
-        for f in filters:
-            filtered_service, filtered_metric = f.split(':')
-            if filtered_service not in self.filtered_metrics:
-                self.filtered_metrics[filtered_service] = []
-            self.filtered_metrics[filtered_service].append(filtered_metric.split(','))
-
-        for service in self.filtered_metrics:
-            logger.info("[Graphite UI] Configuration - Filtered metric: %s - %s", service,
-                        self.filtered_metrics[service])
-
         # Use warning, critical, min, max
         for s in ('warning', 'critical', 'min', 'max'):
             n = 'use_%s' % s
             setattr(self, n, bool(getattr(modconf, n, True)))
             logger.info("[Graphite UI] Configuration - %s metrics: %d", n, getattr(self, n))
-            
+
             n = 'color_%s' % s
             setattr(self, n, getattr(modconf, n, 'black'))
             logger.info("[Graphite UI] Configuration - %s metrics: %s", n, getattr(self, n))
@@ -172,11 +149,6 @@ class Graphite_Webui(BaseModule):
         multival = re.compile(r'_(\d+)$')
 
         for e in metrics:
-            if service in self.filtered_metrics:
-                if e.name in self.filtered_metrics[service]:
-                    logger.warning("[Graphite UI] Ignore metric '%s' for filtered service: %s", e.name, service)
-                    continue
-
             name = multival.sub(r'.\1', e.name)
 
             # bailout if no value
