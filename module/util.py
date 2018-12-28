@@ -57,27 +57,41 @@ class GraphFactory(object):
             if "_GRAPHITE_PRE" in self.element.customs:
                 if "_GRAPHITE_GROUP" in self.element.customs:
                     return GraphiteMetric.join(
+                        self.cfg.prefix,
                         self.element.customs["_GRAPHITE_PRE"],
                         self.element.customs["_GRAPHITE_GROUP"]
                     )
                 else:
-                    return self.element.customs["_GRAPHITE_PRE"]
+                    return GraphiteMetric.join(
+                        self.cfg.prefix,
+                        self.element.customs["_GRAPHITE_PRE"]
+                    )
             else:
                 if "_GRAPHITE_GROUP" in self.element.customs:
-                    return self.element.customs["_GRAPHITE_GROUP"]
+                    return GraphiteMetric.join(
+                        self.cfg.prefix,
+                        self.element.customs["_GRAPHITE_GROUP"]
+                    )
         elif self.element_type == 'service':
             if "_GRAPHITE_PRE" in self.element.host.customs:
                 if "_GRAPHITE_GROUP" in self.element.host.customs:
                     return GraphiteMetric.join(
+                        self.cfg.prefix,
                         self.element.host.customs["_GRAPHITE_PRE"],
                         self.element.host.customs["_GRAPHITE_GROUP"]
                     )
                 else:
-                    return self.element.host.customs["_GRAPHITE_PRE"]
+                    return GraphiteMetric.join(
+                        self.cfg.prefix,
+                        self.element.host.customs["_GRAPHITE_PRE"]
+                    )
             else:
                 if "_GRAPHITE_GROUP" in self.element.host.customs:
-                    return self.element.host.customs["_GRAPHITE_GROUP"]
-        return ''
+                    return GraphiteMetric.join(
+                        self.cfg.prefix,
+                        self.element.host.customs["_GRAPHITE_GROUP"]
+                    )
+        return self.cfg.prefix
 
     # property to retrieve the graphite postfix for a host
     @property
@@ -88,6 +102,9 @@ class GraphFactory(object):
 
     @property
     def template_path(self):
+        if not self.element.check_command:
+            raise TemplateNotFound()
+
         command_parts = self.element.check_command.get_name().split('!')
         filename = command_parts[0] + '.graph'
         template_file = os.path.join(self.cfg.templates_path, self.source, filename)
@@ -188,11 +205,11 @@ class GraphFactory(object):
                                              self.cfg.graphite_data_source,
                                              self.servicename, metric['name'], self.postfix)
 
-            #TODO - Shinken appears to store these in graphite, rather than using the current value as a constant line,
-            #TODO - use the approppriate time series from graphite
-            #NOTE - the Graphite module allows the filtering of constant metrics to avoid storing warn, crit, ... in Graphite!
-            #NOTE - constantLine function is much appropriate in this case.
-            colors = {'warning': 'orange', 'critical': 'red', 'min': 'blue', 'max': 'black'}
+            # TODO - Shinken appears to store these in graphite, rather than using the current value as a constant line,
+            # TODO - use the appropriate time series from graphite
+            # NOTE - the Graphite module allows the filtering of constant metrics to avoid storing warn, crit, ... in Graphite!
+            # NOTE - constantLine function is much appropriate in this case.
+            # colors = {'warning': 'orange', 'critical': 'red', 'min': 'blue', 'max': 'black'}
             for t in ('warning', 'critical', 'min', 'max'):
                 if t in metric:
                     n = 'color_%s' % t
@@ -257,7 +274,9 @@ class GraphFactory(object):
             uri=self.cfg.uri,
             host=GraphiteMetric.normalize(
                 GraphiteMetric.join(self.prefix, self.hostname, self.cfg.graphite_data_source)),
-            service=GraphiteMetric.normalize(GraphiteMetric.join(self.servicename, self.postfix))
+            service=GraphiteMetric.normalize(GraphiteMetric.join(self.servicename, self.postfix)),
+            end=graph_end,
+            start=graph_start
         )
 
 
