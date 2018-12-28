@@ -74,6 +74,10 @@ class Graphite_Webui(BaseModule):
         logger.info("[Graphite UI] Configuration - templates path: %s", self.templates_path)
 
         # optional "sub-folder" in graphite to hold the data of a specific host
+        self.prefix = getattr(modconf, 'prefix', '')
+        logger.info("[Graphite UI] Configuration - Graphite prefix: %s", self.prefix)
+
+        # optional host "sub-folder" in graphite to hold the data of a specific host
         self.graphite_data_source = getattr(modconf, 'graphite_data_source', '')
         logger.info("[Graphite UI] Configuration - Graphite data source: %s", self.graphite_data_source)
 
