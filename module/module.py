@@ -35,10 +35,18 @@ import time
 
 from .graphite_utils import GraphStyle, GraphiteMetric
 from .util import GraphFactory
-from shinken.log import logger
-from shinken.basemodule import BaseModule
-from shinken.misc.perfdata import PerfDatas
+try:
+    from shinken.log import logger
+    from shinken.basemodule import BaseModule
+    from shinken.misc.perfdata import PerfDatas
+except ImportError:
+    # Specific logger configuration
+    import logging
+    from alignak.log import ALIGNAK_LOGGER_NAME
+    logger = logging.getLogger(ALIGNAK_LOGGER_NAME + ".webui.ui_graphite")
 
+    from alignak.basemodule import BaseModule
+    from alignak.misc.perfdata import PerfDatas
 
 properties = {
     'daemons': ['webui'],
