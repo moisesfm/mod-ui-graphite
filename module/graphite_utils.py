@@ -26,7 +26,10 @@ __author__ = 'bjorn'
 from datetime import datetime
 import re
 import logging
-import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 
 # encapsulate graph styles
