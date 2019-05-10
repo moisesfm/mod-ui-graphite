@@ -103,6 +103,16 @@ class Graphite_Webui(BaseModule):
         self.tz = getattr(modconf, 'tz', 'Europe/Paris')
         logger.info("[Graphite UI] Configuration - Graphite time zone: %s", self.tz)
 
+    def init(self):
+        """
+        Called by the modules manager so we can do init stuff
+
+        :return:
+        """
+        logger.info("Initializing ...")
+        # Return True to confirm correct initialization
+        return True
+
     @property
     def uri(self):
         return self._uri
