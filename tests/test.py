@@ -13,10 +13,10 @@ FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 ROOT_PATH = os.path.abspath(os.path.join(FILE_PATH, '../'))
 sys.path.append(ROOT_PATH)
 
-from module.util import JSONTemplate, GraphFactory, TemplateNotFound
-from module.graphite_utils import GraphStyle, GraphiteTarget, GraphiteURL, GraphiteMetric, graphite_time, \
+from alignak_webui_graphite2.util import JSONTemplate, GraphFactory, TemplateNotFound
+from alignak_webui_graphite2.graphite_utils import GraphStyle, GraphiteTarget, GraphiteURL, GraphiteMetric, graphite_time, \
     GraphiteRewriteRule, GraphiteFunction, GraphiteString
-from module.module import Graphite_Webui
+from alignak_webui_graphite2.module import Graphite_Webui
 from fake_shinken import Host, CheckCommand, Service, ShinkenModuleConfig
 
 os.environ["TZ"] = "UTC"
