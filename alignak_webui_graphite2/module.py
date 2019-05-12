@@ -136,9 +136,14 @@ class Graphite_Webui(BaseModule):
         height = getattr(modconf, 'detail_view_height', '308')
         self.styles['detail'] = GraphStyle(width=width, height=height, font_size=font,line_style=lineMode)
 
-    # Try to connect if we got true parameter
     def init(self):
-        pass
+        """
+        Called by Broker so we can do init stuff
+
+        :return:
+        """
+        # Return True to confirm correct initialization
+        return True
 
     # To load the webui application
     def load(self, app):
