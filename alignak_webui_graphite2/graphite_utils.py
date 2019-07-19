@@ -20,16 +20,18 @@
 # along with Shinken.  If not, see <http://www.gnu.org/licenses/>.
 
 # Graphite utilities for generating graphs
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 __author__ = 'bjorn'
 
 
 from datetime import datetime
 import re
 import logging
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
+from urllib.parse import urlparse
 
 
 # encapsulate graph styles
