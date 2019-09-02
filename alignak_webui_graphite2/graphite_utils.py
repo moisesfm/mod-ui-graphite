@@ -31,7 +31,7 @@ __author__ = 'bjorn'
 from datetime import datetime
 import re
 import logging
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 
 # encapsulate graph styles
@@ -227,8 +227,8 @@ class GraphiteURL(object):
 
     @classmethod
     def parse(cls, string, style=GraphStyle()):
-        parts = urlparse.urlparse(string)
-        query = urlparse.parse_qs(parts.query)
+        parts = urlparse(string)
+        query = parse_qs(parts.query)
 
         def query_param(key, default=None):
             r = default
